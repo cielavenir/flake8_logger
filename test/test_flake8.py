@@ -19,11 +19,20 @@ log.warn('format %s', 'foo')
     violations = list(LoggerChecker(tree).run())
     assert len(violations) == 0
 
-def test_positive_format_dict():
+def test_positive_format_dict_str():
     tree = parse('''
 import logging
 log = logging.getLogger(__name__)
 log.warn('format %(xxx)s %(yyy)s', {'xxx':'foo', 'yyy':'bar'})
+''')
+    violations = list(LoggerChecker(tree).run())
+    assert len(violations) == 0
+
+def test_positive_format_dict_unicode():
+    tree = parse('''
+import logging
+log = logging.getLogger(__name__)
+log.warn(u'format %(xxx)s %(yyy)s', {u'xxx':'foo', 'yyy':'bar'})
 ''')
     violations = list(LoggerChecker(tree).run())
     assert len(violations) == 0

@@ -1,6 +1,12 @@
 from .version import __version__
 from re import compile
+from six import string_types
 from ast import walk, Call, Name, Attribute, Str, Dict
+
+try:
+    from ast import Starred
+except ImportError:
+    Starred = None
 
 LG010 = "LG010 the number of arguments for log.* is wrong."
 LG011 = "LG011 the dict argument for log.* does not match with the format."
@@ -44,13 +50,15 @@ class LoggerChecker(object):
                 args = list(node.args[2:])
             else:
                 continue
-            if node.starargs is not None:
+            if getattr(node, 'starargs', None) is not None:  # Py2
                 args += getattr(node.starargs, 'elts', [])
+            if len(args) > 0 and Starred is not None and isinstance(args[-1], Starred):  # Py3
+                args += getattr(args.pop(-1).value, 'elts', [])
             if len(args) == 1 and isinstance(args[0], Dict):
                 keys = [getattr(key, 's', None) for key in args[0].keys]
-                if None not in keys:
+                if None not in keys and all(isinstance(key, string_types) for key in keys):
                     fmtKeys = [e[2:-1] for e in self.__fmtpattern.findall(fmt)]
-                    if set(keys) == set(fmtKeys):
+                    if set(str(key) for key in keys) == set(str(key) for key in fmtKeys):
                         continue
                     else:
                         yield node.lineno, node.col_offset, LG011, type(self)
