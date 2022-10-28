@@ -21,7 +21,7 @@ setup(
     zip_safe=False,
     # include_package_data=True,
     platforms='any',
-    install_requires=['flake8>=3.0'],
+    install_requires=['flake8>=3.0','six'],
     classifiers=[
         'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
