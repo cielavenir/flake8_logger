@@ -55,6 +55,26 @@ log.warn('format %s', *('foo',))
     violations = list(LoggerChecker(tree).run())
     assert len(violations) == 0
 
+def test_positive_format_star_many():
+    tree = parse('''
+import logging
+log = logging.getLogger(__name__)
+args = ('foo', 'bar')
+log.warn('format %s %s', *args)
+''')
+    violations = list(LoggerChecker(tree).run())
+    assert len(violations) == 0
+
+def test_positive_format_star_zero():
+    tree = parse('''
+import logging
+log = logging.getLogger(__name__)
+args = ()
+log.warn('format', *args)
+''')
+    violations = list(LoggerChecker(tree).run())
+    assert len(violations) == 0
+
 def test_argument_missing():
     tree = parse('''
 import logging

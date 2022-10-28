@@ -50,10 +50,14 @@ class LoggerChecker(object):
                 args = list(node.args[2:])
             else:
                 continue
+            hasNArgs = False
             if getattr(node, 'starargs', None) is not None:  # Py2
-                args += getattr(node.starargs, 'elts', [])
+                # args += getattr(node.starargs, 'elts', [])
+                hasNArgs = True
             if len(args) > 0 and Starred is not None and isinstance(args[-1], Starred):  # Py3
-                args += getattr(args.pop(-1).value, 'elts', [])
+                starargs = args.pop(-1).value
+                # args += getattr(starargs, 'elts', [])
+                hasNArgs = True
             if len(args) == 1 and isinstance(args[0], Dict):
                 keys = [getattr(key, 's', None) for key in args[0].keys]
                 if None not in keys and all(isinstance(key, string_types) for key in keys):
@@ -66,5 +70,7 @@ class LoggerChecker(object):
                     yield node.lineno, node.col_offset, LG012, type(self)
             numArgs = fmt.count('%') - 2*fmt.count('%%')
             if numArgs == len(args):
+                continue
+            if hasNArgs and numArgs >= len(args):
                 continue
             yield node.lineno, node.col_offset, LG010, type(self)
