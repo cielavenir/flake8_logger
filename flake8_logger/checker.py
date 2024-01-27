@@ -26,9 +26,12 @@ class LoggerChecker(object):
                 continue
             if not isinstance(node.func, Attribute):
                 continue
-            if not isinstance(node.func.value, Name):
+            value = node.func.value
+            while isinstance(value, Attribute):
+                value = value.value
+            if not isinstance(value, Name):
                 continue
-            if node.func.value.id not in ('log', 'logger', 'logging'):
+            if value.id not in ('log', 'logger', 'logging'):
                 continue
             if node.func.attr in ('critical', 'exception', 'error', 'warn', 'warning', 'info', 'debug', 'verbose'):
                 if len(node.args) == 0:

@@ -124,3 +124,38 @@ log.log(logging.WARN, 'argument missing %s')
     violations = list(LoggerChecker(tree).run())
     assert len(violations) == 1
     assert violations[0][2].startswith('LG010 ')
+
+def test_child_not_format():
+    tree = parse('''
+import logging
+class ChildLogger(logging.getLoggerClass()):
+    _child = None
+    @property
+    def child(self):
+        if self._child is None:
+            self._child = logging.getLogger(self.name+'.child')
+        return self._child
+logging.setLoggerClass(ChildLogger)
+log = logging.getLogger(__name__)
+log.child.warn('not format')
+''')
+    violations = list(LoggerChecker(tree).run())
+    assert len(violations) == 0
+
+def test_child_argument_missing():
+    tree = parse('''
+import logging
+class ChildLogger(logging.getLoggerClass()):
+    _child = None
+    @property
+    def child(self):
+        if self._child is None:
+            self._child = logging.getLogger(self.name+'.child')
+        return self._child
+logging.setLoggerClass(ChildLogger)
+log = logging.getLogger(__name__)
+log.child.warn('argument missing %s')
+''')
+    violations = list(LoggerChecker(tree).run())
+    assert len(violations) == 1
+    assert violations[0][2].startswith('LG010 ')
